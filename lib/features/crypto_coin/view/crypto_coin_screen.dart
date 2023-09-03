@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:crypto_coins_list/features/crypto_coin/bloc/crypto_coin_bloc.dart';
 import 'package:crypto_coins_list/repositories/crypto_coins_repositories/abstract_coins_repositories.dart';
 import 'package:flutter/material.dart';
@@ -32,57 +34,111 @@ class _CryptoCoinScreenState extends State<CryptoCoinScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(
-        title: Center(
-          child: Text(coin!.name),
-        ),
-      ),
-      body: BlocBuilder<CryptoCoinBloc, CryptoCoinState>(
-        bloc: _cryptoCoinBloc,
-        builder: (context, state) {
-          if (state is CryptoCoinLoaded) {
-            final coin = state.cryptoCoinDitail;
-            return Center(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  SizedBox(
-                    height: 150,
-                    width: 150,
-                    child: Image.network(coin.imageUrl),
-                  ),
-                  Text(
-                    coin.name,
-                    style: theme.textTheme.bodyMedium?.copyWith(fontSize: 25),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SizedBox(
-                        height: 30,
-                        child: Center(
-                          child: Text(
-                            coin.hight24Hours.toString(),
-                            style: theme.textTheme.bodyMedium
-                                ?.copyWith(fontSize: 25),
+      appBar: AppBar(),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          final completer = Completer();
+          _cryptoCoinBloc.add(
+              LoadCryptoCoin(currencyCode: coin!.name, completer: completer));
+          return completer.future;
+        },
+        child: ListView(
+          children: <Widget>[
+            BlocBuilder<CryptoCoinBloc, CryptoCoinState>(
+              bloc: _cryptoCoinBloc,
+              builder: (context, state) {
+                if (state is CryptoCoinLoaded) {
+                  final coin = state.cryptoCoinDitail;
+                  return Center(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        SizedBox(
+                          height: 150,
+                          width: 150,
+                          child: Image.network(coin.imageUrl),
+                        ),
+                        Text(
+                          coin.name,
+                          style: theme.textTheme.bodyMedium
+                              ?.copyWith(fontSize: 25),
+                        ),
+                        const SizedBox(
+                          height: 30,
+                        ),
+                        Container(
+                          width: 300,
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Colors.deepPurple[300],
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Center(
+                            child: Text(
+                              '${coin.hight24Hours.toString()} \$',
+                              style: theme.textTheme.bodyMedium
+                                  ?.copyWith(fontSize: 25),
+                            ),
                           ),
                         ),
-                      ),
-                      Text(
-                        coin.low24Hours.toString(),
-                        style:
-                            theme.textTheme.bodyMedium?.copyWith(fontSize: 25),
-                      ),
-                    ],
-                  )
-                ],
-              ),
-            );
-          }
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
-        },
+                        const SizedBox(
+                          height: 30,
+                        ),
+                        Container(
+                          width: 300,
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Colors.deepPurple[300],
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Hight 24 hours',
+                                    style: theme.textTheme.bodyMedium
+                                        ?.copyWith(fontSize: 20),
+                                  ),
+                                  Text(
+                                    '${coin.hight24Hours.toString()} \$',
+                                    style: theme.textTheme.bodyMedium
+                                        ?.copyWith(fontSize: 20),
+                                  ),
+                                ],
+                              ),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    'Low 24 hours',
+                                    style: theme.textTheme.bodyMedium
+                                        ?.copyWith(fontSize: 20),
+                                  ),
+                                  Text(
+                                    '${coin.low24Hours.toString()} \$',
+                                    style: theme.textTheme.bodyMedium
+                                        ?.copyWith(fontSize: 20),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
